@@ -1,0 +1,13 @@
+{
+  "name": "buret",
+  "version": "0.0.1",
+  "private": true,
+  "dependencies": {
+    "express": "4.16.3",
+    "jsonwebtoken": "8.3.0",
+    "web-push": "3.3.2",
+    "cheerio": "1.0.0-rc.2",
+    "axios": "0.18.0",
+    "redis": "2.8.0"
+  }
+}
