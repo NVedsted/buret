@@ -128,47 +128,56 @@
             unsubscribeTab.classList.add("active");
         }
 
+        function showLoadingTab() {
+            subscribeTab.classList.remove("active");
+            loadingTab.classList.add("active");
+            unsubscribeTab.classList.remove("active");
+        }
+
         async function subscribe() {
             if (convertedVapidKey == null) {
                 alert("Waiting for public key. Try again in a few seconds. If the problem persists, try refreshing.");
+                return;
             }
-            navigator.serviceWorker.ready.then(async (reg) => {
-                const subscription = await reg.pushManager.subscribe({
-                    'userVisibleOnly': true,
-                    'applicationServerKey': convertedVapidKey
-                });
-                const { keys } = subscription.toJSON();
-                const classes = [];
-                const select = document.getElementById('classesSelect');
-                for (let i = 0; i < select.length; ++i) {
-                    if (select[i].selected) {
-                        classes.push(select[i].value);
-                    }
-                }
-                axios.post('/subscribe', null, {
-                    'params': {
-                        'endpoint': subscription.endpoint,
-                        'auth': keys.auth,
-                        'p256dh': keys.p256dh,
-                        'notes': document.getElementById('notesBox').checked,
-                        'classes': classes.join(','),
-                    }
-                });
-                showUnsubscribeTab();
+
+            showLoadingTab();
+
+            const reg = await navigator.serviceWorker.ready;
+            const subscription = await reg.pushManager.subscribe({
+                'userVisibleOnly': true,
+                'applicationServerKey': convertedVapidKey
             });
+            const { keys } = subscription.toJSON();
+            const classes = [];
+            const select = document.getElementById('classesSelect');
+            for (let i = 0; i < select.length; ++i) {
+                if (select[i].selected) {
+                    classes.push(select[i].value);
+                }
+            }
+            await axios.post('/subscribe', null, {
+                'params': {
+                    'endpoint': subscription.endpoint,
+                    'auth': keys.auth,
+                    'p256dh': keys.p256dh,
+                    'notes': document.getElementById('notesBox').checked,
+                    'classes': classes.join(','),
+                }
+            });
+            showUnsubscribeTab();
         }
 
         async function unsubscribe() {
-            navigator.serviceWorker.ready.then(async (reg) => {
-                const subscription = await reg.pushManager.getSubscription();
-                axios.post('/unsubscribe', null, {
-                    'params': {
-                        'endpoint': subscription.endpoint,
-                    }
-                });
-                subscription.unsubscribe();
-                showSubscribeTab();
+            showLoadingTab();
+            const reg = await navigator.serviceWorker.ready;
+            const subscription = await reg.pushManager.getSubscription();
+            await axios.post('/unsubscribe', null, {
+                'params': {
+                    'endpoint': subscription.endpoint,
+                }
             });
+            await subscription.unsubscribe();
+            showSubscribeTab();
         }
 
         navigator.serviceWorker.register('/sw.js');
