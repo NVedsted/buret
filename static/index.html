@@ -4,21 +4,87 @@
 <head>
     <meta charset="UTF-8">
     <title>Buret Notifikationer</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.18.0/axios.min.js"></script>
+    <style>
+        body {
+            font-family: sans-serif;
+            margin: 0;
+        }
+
+        h1 {
+            text-align: center;
+            background-color: #003d73;
+            margin: 0;
+            color: white;
+            padding: 0.5em;
+        }
+
+        #loading p {
+            text-align: center;
+        }
+
+        .container {
+            display: none;
+            margin: 1em 0.5em;
+        }
+
+        .container.active {
+            display: block;
+        }
+
+        button {
+            background-color: #003d73;
+            text-decoration: none;
+            cursor: pointer;
+            border: none;
+            color: white;
+            width: 100%;
+            padding: 1em 0.5em;
+            font-size: 1em;
+            font-weight: bold;
+        }
+
+        select {
+            width: 100%;
+            margin-bottom: 0.5em;
+        }
+
+        button.sub {
+            margin-top: 0.5em;
+            background-color: #8bad3f;
+        }
+
+        button.unsub {
+            background-color: #e2001a;
+        }
+    </style>
 </head>
 
 <body>
-    <div>
-        <input id="notesBox" type="checkbox">
-        <label for="notesBox">Notes</label>
+    <h1>Burtavle-notifikationer</h1>
+    <div class="container active" id="loading">
+        <p>Henter data... Lige et øjeblik...</p>
     </div>
 
-    <div>
-        <label for="classesSelect">Classes:</label>
+    <div class="container" id="subscribe">
+        <p>Hold, som du vil modtage notifikationer omkring:</p>
+
         <select id="classesSelect" multiple></select>
+
+        <div>
+            <input id="notesBox" type="checkbox">
+            <label for="notesBox">Modtag notifikationer om ændringer i Burets overordnede note.</label>
+        </div>
+
+        <button class="sub" onclick="subscribe()">Subscribe</button>
     </div>
 
-    <button id="subscribeButton">Loading...</button>
+    <div class="container" id="unsubscribe">
+        <p>Du er allerede subscribed! Hvis du vil afmelde eller ændre dine indstillinger, så tryk Unsubscribe.</p>
+
+        <button class="unsub" onclick="unsubscribe()">Unsubscribe</button>
+    </div>
 
     <script type="text/javascript">
         axios.get('/classes').then((response) => {
@@ -46,18 +112,21 @@
             convertedVapidKey = urlBase64ToUint8Array(response.data);
         });
 
-        const subscribeButton = document.getElementById('subscribeButton');
+        const subscribeTab = document.getElementById("subscribe");
+        const loadingTab = document.getElementById("loading");
+        const unsubscribeTab = document.getElementById("unsubscribe");
 
-        function setSubscribeButton() {
-            subscribeButton.textContent = 'Subscribe!';
-            subscribeButton.onclick = subscribe;
+        function showSubscribeTab() {
+            subscribeTab.classList.add("active");
+            loadingTab.classList.remove("active");
+            unsubscribeTab.classList.remove("active");
         }
 
-        function setUnsubscribeButton() {
-            subscribeButton.textContent = 'Unsubscribe!';
-            subscribeButton.onclick = unsubscribe;
+        function showUnsubscribeTab() {
+            subscribeTab.classList.remove("active");
+            loadingTab.classList.remove("active");
+            unsubscribeTab.classList.add("active");
         }
-
 
         async function subscribe() {
             if (convertedVapidKey == null) {
@@ -85,7 +154,7 @@
                         'classes': classes.join(','),
                     }
                 });
-                setUnsubscribeButton();
+                showUnsubscribeTab();
             });
         }
 
@@ -98,7 +167,7 @@
                     }
                 });
                 subscription.unsubscribe();
-                setSubscribeButton();
+                showSubscribeTab();
             });
         }
 
@@ -108,13 +177,13 @@
             if (sub) {
                 const subbed = (await axios.get("/subscribed", { params: { endpoint: sub.endpoint } })).data;
                 if (subbed) {
-                    setUnsubscribeButton();
+                    showUnsubscribeTab();
                 } else {
                     sub.unsubscribe();
-                    setSubscribeButton();
+                    showSubscribeTab();
                 }
             } else {
-                setSubscribeButton();
+                showSubscribeTab();
             }
         });
     </script>
