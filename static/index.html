@@ -1,120 +1,123 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <title>Buret Notifikationer</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.18.0/axios.min.js"></script>
 </head>
+
 <body>
-<div>
-    <input id="notesBox" type="checkbox">
-    <label for="notesBox">Notes</label>
-</div>
+    <div>
+        <input id="notesBox" type="checkbox">
+        <label for="notesBox">Notes</label>
+    </div>
 
-<div>
-    <label for="classesSelect">Classes:</label>
-    <select id="classesSelect" multiple></select>
-</div>
+    <div>
+        <label for="classesSelect">Classes:</label>
+        <select id="classesSelect" multiple></select>
+    </div>
 
-<button id="subscribeButton">Loading...</button>
+    <button id="subscribeButton">Loading...</button>
 
-<script type="text/javascript">
-    axios.get('/classes').then((response) => {
-        document.getElementById('classesSelect').innerHTML = response.data.map((c) => `<option value="${c.id}">${c.name}</option>`);
-        document.getElementById('classesSelect').size = response.data.length;
-    });
+    <script type="text/javascript">
+        axios.get('/classes').then((response) => {
+            document.getElementById('classesSelect').innerHTML = response.data.map((c) => `<option value="${c.id}">${c.name}</option>`);
+            document.getElementById('classesSelect').size = response.data.length;
+        });
 
-    function urlBase64ToUint8Array(base64String) {
-        const padding = '='.repeat((4 - base64String.length % 4) % 4);
-        const base64 = (base64String + padding)
-            .replace(/\-/g, '+')
-            .replace(/_/g, '/');
+        function urlBase64ToUint8Array(base64String) {
+            const padding = '='.repeat((4 - base64String.length % 4) % 4);
+            const base64 = (base64String + padding)
+                .replace(/\-/g, '+')
+                .replace(/_/g, '/');
 
-        const rawData = window.atob(base64);
-        const outputArray = new Uint8Array(rawData.length);
+            const rawData = window.atob(base64);
+            const outputArray = new Uint8Array(rawData.length);
 
-        for (let i = 0; i < rawData.length; ++i) {
-            outputArray[i] = rawData.charCodeAt(i);
-        }
-        return outputArray;
-    }
-
-    let convertedVapidKey = null;
-    axios.get("/key").then((response) => {
-        convertedVapidKey = urlBase64ToUint8Array(response.data);
-    });
-
-    const subscribeButton = document.getElementById('subscribeButton');
-
-    function setSubscribeButton() {
-        subscribeButton.textContent = 'Subscribe!';
-        subscribeButton.onclick = subscribe;
-    }
-
-    function setUnsubscribeButton() {
-        subscribeButton.textContent = 'Unsubscribe!';
-        subscribeButton.onclick = unsubscribe;
-    }
-
-
-    async function subscribe() {
-        if (convertedVapidKey == null) {
-            alert("Waiting for public key. Try again in a few seconds. If the problem persists, try refreshing.");
-        }
-        navigator.serviceWorker.ready.then(async (reg) => {
-            const subscription = await reg.pushManager.subscribe({
-                'userVisibleOnly': true,
-                'applicationServerKey': convertedVapidKey
-            });
-            const {keys} = subscription.toJSON();
-            const classes = [];
-            const select = document.getElementById('classesSelect');
-            for (let i = 0; i < select.length; ++i) {
-                if (select[i].selected) {
-                    classes.push(select[i].value);
-                }
+            for (let i = 0; i < rawData.length; ++i) {
+                outputArray[i] = rawData.charCodeAt(i);
             }
-            axios.post('/subscribe', null, {
-                'params': {
-                    'endpoint': subscription.endpoint,
-                    'auth': keys.auth,
-                    'p256dh': keys.p256dh,
-                    'notes': document.getElementById('notesBox').checked,
-                    'classes': classes.join(','),
-                }
-            });
-            setUnsubscribeButton();
-        });
-    }
+            return outputArray;
+        }
 
-    async function unsubscribe() {
-        navigator.serviceWorker.ready.then(async (reg) => {
-            const subscription = await reg.pushManager.getSubscription();
-            axios.post('/unsubscribe', null, {
-                'params': {
-                    'endpoint': subscription.endpoint,
-                }
-            });
-            subscription.unsubscribe();
-            setSubscribeButton();
+        let convertedVapidKey = null;
+        axios.get("/key").then((response) => {
+            convertedVapidKey = urlBase64ToUint8Array(response.data);
         });
-    }
 
-    navigator.serviceWorker.register('/sw.js');
-    navigator.serviceWorker.ready.then(async (reg) => {
-        const sub = await reg.pushManager.getSubscription()
-        if (sub) {
-            const subbed = (await axios.get("/subscribed", {params: {endpoint: sub.endpoint}})).data;
-            if (subbed) {
+        const subscribeButton = document.getElementById('subscribeButton');
+
+        function setSubscribeButton() {
+            subscribeButton.textContent = 'Subscribe!';
+            subscribeButton.onclick = subscribe;
+        }
+
+        function setUnsubscribeButton() {
+            subscribeButton.textContent = 'Unsubscribe!';
+            subscribeButton.onclick = unsubscribe;
+        }
+
+
+        async function subscribe() {
+            if (convertedVapidKey == null) {
+                alert("Waiting for public key. Try again in a few seconds. If the problem persists, try refreshing.");
+            }
+            navigator.serviceWorker.ready.then(async (reg) => {
+                const subscription = await reg.pushManager.subscribe({
+                    'userVisibleOnly': true,
+                    'applicationServerKey': convertedVapidKey
+                });
+                const { keys } = subscription.toJSON();
+                const classes = [];
+                const select = document.getElementById('classesSelect');
+                for (let i = 0; i < select.length; ++i) {
+                    if (select[i].selected) {
+                        classes.push(select[i].value);
+                    }
+                }
+                axios.post('/subscribe', null, {
+                    'params': {
+                        'endpoint': subscription.endpoint,
+                        'auth': keys.auth,
+                        'p256dh': keys.p256dh,
+                        'notes': document.getElementById('notesBox').checked,
+                        'classes': classes.join(','),
+                    }
+                });
                 setUnsubscribeButton();
+            });
+        }
+
+        async function unsubscribe() {
+            navigator.serviceWorker.ready.then(async (reg) => {
+                const subscription = await reg.pushManager.getSubscription();
+                axios.post('/unsubscribe', null, {
+                    'params': {
+                        'endpoint': subscription.endpoint,
+                    }
+                });
+                subscription.unsubscribe();
+                setSubscribeButton();
+            });
+        }
+
+        navigator.serviceWorker.register('/sw.js');
+        navigator.serviceWorker.ready.then(async (reg) => {
+            const sub = await reg.pushManager.getSubscription()
+            if (sub) {
+                const subbed = (await axios.get("/subscribed", { params: { endpoint: sub.endpoint } })).data;
+                if (subbed) {
+                    setUnsubscribeButton();
+                } else {
+                    sub.unsubscribe();
+                    setSubscribeButton();
+                }
             } else {
-                sub.unsubscribe();
                 setSubscribeButton();
             }
-        } else {
-            setSubscribeButton();
-        }
-    });
-</script>
+        });
+    </script>
 </body>
+
 </html>
