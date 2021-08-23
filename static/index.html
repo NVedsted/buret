@@ -16,7 +16,7 @@
     <select id="classesSelect" multiple></select>
 </div>
 
-<button id="subscribeButton">Dank memes.</button>
+<button id="subscribeButton">Loading...</button>
 
 <script type="text/javascript">
     axios.get('/classes').then((response) => {
@@ -39,8 +39,10 @@
         return outputArray;
     }
 
-    const vapidPublicKey = 'BEbBIRU02rm_Z1cJzbfiWYW-XjgErXv9HHRIcUzbr4H6ZN6xkzkTKKyEiyI-WXgP5IhhLtZpk_IKxiB_2Pa6SZs';
-    const convertedVapidKey = urlBase64ToUint8Array(vapidPublicKey);
+    let convertedVapidKey = null;
+    axios.get("/key").then((response) => {
+        convertedVapidKey = urlBase64ToUint8Array(response.data);
+    });
 
     const subscribeButton = document.getElementById('subscribeButton');
 
@@ -56,6 +58,9 @@
 
 
     async function subscribe() {
+        if (convertedVapidKey == null) {
+            alert("Waiting for public key. Try again in a few seconds. If the problem persists, try refreshing.");
+        }
         navigator.serviceWorker.ready.then(async (reg) => {
             const subscription = await reg.pushManager.subscribe({
                 'userVisibleOnly': true,
@@ -97,8 +102,15 @@
 
     navigator.serviceWorker.register('/sw.js');
     navigator.serviceWorker.ready.then(async (reg) => {
-        if (await reg.pushManager.getSubscription()) {
-            setUnsubscribeButton();
+        const sub = await reg.pushManager.getSubscription()
+        if (sub) {
+            const subbed = (await axios.get("/subscribed", {params: {endpoint: sub.endpoint}})).data;
+            if (subbed) {
+                setUnsubscribeButton();
+            } else {
+                sub.unsubscribe();
+                setSubscribeButton();
+            }
         } else {
             setSubscribeButton();
         }

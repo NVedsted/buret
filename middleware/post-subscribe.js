@@ -14,5 +14,6 @@ module.exports = (request, response) => {
     }
 
     subscription.subscribe(endpoint, auth, p256dh, notes === 'true', classes.split(','));
+    console.log("New subscription added.");
     response.status(200).end();
 };

@@ -1,5 +1,3 @@
-console.log('help');
-
 self.addEventListener('push', function(event) {
     const updates = event.data.json();
     for (const update of updates) {
