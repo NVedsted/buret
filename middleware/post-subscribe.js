@@ -1,6 +1,6 @@
 const subscription = require('../lib/subscriptions');
 
-module.exports = (request, response) => {
+module.exports = async (request, response) => {
     const { 'query': {
         endpoint,
         auth,
@@ -13,7 +13,7 @@ module.exports = (request, response) => {
         response.status(400).end('You must provide endpoint, auth, and p256dh.');
     }
 
-    subscription.subscribe(endpoint, auth, p256dh, notes === 'true', classes.split(','));
+    await subscription.subscribe(endpoint, auth, p256dh, notes === 'true', classes.split(','));
     console.log("New subscription added.");
     response.status(200).end();
 };

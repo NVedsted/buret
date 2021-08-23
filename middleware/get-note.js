@@ -1,5 +1,5 @@
 const cache = require('../lib/cache');
 
-module.exports = (request, response) => {
-    response.json(cache.getNote());
+module.exports = async(_, response) => {
+    response.json(await cache.getNote());
 };

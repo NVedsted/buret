@@ -1,6 +1,6 @@
 const subscription = require('../lib/subscriptions');
 
-module.exports = (request, response) => {
+module.exports = async (request, response) => {
     const { 'query': {
         endpoint,
     } } = request;
@@ -9,7 +9,7 @@ module.exports = (request, response) => {
         response.status(400).end('You must provide endpoint.');
     }
 
-    subscription.unsubscribe(endpoint);
+    await subscription.unsubscribe(endpoint);
     console.log("Subscription removed.");
     response.status(200).end();
 };

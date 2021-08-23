@@ -3,11 +3,11 @@
   "version": "0.0.1",
   "private": true,
   "dependencies": {
+    "async-redis": "^2.0.0",
     "axios": "^0.21.1",
     "cheerio": "1.0.0-rc.2",
     "express": "4.16.3",
     "jsonwebtoken": "8.3.0",
-    "redis": "^3.1.2",
     "web-push": "^3.4.5"
   }
 }

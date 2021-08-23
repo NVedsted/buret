@@ -1,4 +1,4 @@
-const subscription = require('../lib/subscriptions');
+const subscription = require('../lib/cache');
 
 module.exports = async(request, response) => {
     const { 'query': {

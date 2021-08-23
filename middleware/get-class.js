@@ -1,8 +1,8 @@
 const cache = require('../lib/cache');
 
-module.exports = (request, response) => {
+module.exports = async(request, response) => {
     const { 'params': { id } } = request;
-    const classes = cache.getClasses();
+    const classes = await cache.getClasses();
     if (classes.hasOwnProperty(id)) {
         response.json(classes[id]);
     } else {
