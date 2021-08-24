@@ -58,13 +58,29 @@
         button.unsub {
             background-color: #e2001a;
         }
+
+        .warning {
+            background-color: #fabb00;
+            padding: 0.5em;
+        }
+
+        .warning p {
+            color:white;
+            font-size: 0.75em;
+        }
     </style>
 </head>
 
 <body>
     <h1>Burtavle-Notifikationer</h1>
+
     <div class="container active" id="loading">
-        <p>Henter data... Lige et øjeblik...</p>
+        <p>Jeg tager lige en tænkepause... Lige et øjeblik...</p>
+
+        <div class="warning">
+            <p>Bemærk at denne service umiddelbart ikke virker på iPhone. For den bedste oplevelse, anbefales Chrome på en Android-telefon.</p>
+            <p>Det er vigtigt at siden er åbnet direkte i din browser og ikke igennem fx Messenger. Man kan tit trykke "Åben i Chrome" eller tilsvarende fra menuen, når den åbnes via Messenger.</p>
+        </div>
     </div>
 
     <div class="container" id="subscribe">
